@@ -7,6 +7,8 @@ from PIL import Image
 from PIL import ImageTk
 import cv2
 import imutils
+#Biblioteca para manejo de audio
+import pygame
 #Bibliotecas necesarias para instrucciones del SO
 import os
 from os import listdir
@@ -28,11 +30,14 @@ color_white = "#FFFFFF"
 #Variables globales necesarias para el manejo de imagenes y video
 image = None
 cap = None
+mixer = None
 imageIndex = 0
 
+#Lista los archivos de una ruta especifica
 def listDirFiles(path):    
     return [obj for obj in listdir(path) if isfile(path + obj)]
 
+#Se encarga de abrir una nueva ventana para poder reproducir Netflix
 def playNetflix():
     global url_netflix
     
@@ -52,7 +57,8 @@ def playNetflix():
     btn_close.grid(column=0,row=0,padx=2,pady=2)
     
     root.mainloop()
-    
+
+#Se encarga de abrir una nueva ventana para poder reproducir Spotify
 def playSpotify():
     global url_spotify
     
@@ -72,22 +78,28 @@ def playSpotify():
     btn_close.grid(column=0,row=0,padx=2,pady=2)
     
     root.mainloop()
-    
+
+#Se encarga de cerrar el navegador cuando se quiera regresar al menu principal
 def closeWindowAndBrowser(root):
     kill_process("chromium-browse")
     root.destroy()
 
+#Se encarga de verificar el tipo de archivos que tiene un directorio en especifico
 def verifyFilesType():
     """path = filedialog.askopenfilename(filetypes = [
         ("image",".jpg"),
         ("image",".jpeg"),
         ("image",".png")])"""
+    #Se guardan los nombres de los archivos que se vayan encontrando
     imageFiles = []
     videoFiles = []
+    audioFiles = []
     
+    #Se manda la ruta del directorio que queremos buscar
     files=listDirFiles("/home/raspberry/Desktop/PiTV/Images/Test/")
     files2=listDirFiles("/home/raspberry/Desktop/PiTV/Videos/")
-    for file in files:
+    files3=listDirFiles("/home/raspberry/Desktop/PiTV/Audio/")
+    for file in files3:
         split_tup = os.path.splitext(file)
         extension = split_tup[1]
         print(file + " extension: " + extension)
@@ -95,19 +107,93 @@ def verifyFilesType():
             imageFiles.append(file)
         elif(extension == ".mp4" or extension == ".avi"):
             videoFiles.append(file)
+        elif(extension == ".mp3"):
+            audioFiles.append(file)
         else:
             print("File extension not supported...")
             
     print("Video files: " + str(videoFiles))
     print("Image files: " + str(imageFiles))
+    print("Audio files: " + str(audioFiles))
     
-    if(len(imageFiles) > 0 and len(videoFiles) == 0):
+    if(len(imageFiles) > 0 and len(videoFiles) == 0 and len(audioFiles) == 0):
         openImageGallery(imageFiles)
-    elif(len(videoFiles) > 0 and len(imageFiles) == 0):
+    elif(len(videoFiles) > 0 and len(imageFiles) == 0 and len(audioFiles) == 0):
         openVideos(videoFiles)
+    elif(len(audioFiles) > 0 and len(imageFiles) == 0 and len(videoFiles) == 0):
+        openAudios(audioFiles)
     else:
         print("Archivos mixtos")
+
+def openAudios(audioList):
+    root = Tk()
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+    root.title("Audio Player")
+    #root.geometry("%dx%d" % (width,height))
+    root.attributes('-fullscreen', True)
+    root.configure(bg=color_black)
     
+    #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-Contenedor Frame Galeria de imagenes*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+    frame = Frame(root)
+    frame.config(bd="10", bg=color_dark_gray)
+    frame.pack(fill="both",padx=20,pady=20, expand=True)
+    #frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
+    frame.columnconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=1)
+    frame.columnconfigure(2, weight=1)
+    frame.rowconfigure(0, weight=1)
+    frame.rowconfigure(1, weight=1)
+    frame.rowconfigure(2, weight=1)
+    
+    text_font3 = Font(family="Roboto", size=40, weight="bold")
+    
+    #Imagenes utilizadas
+    itunes_logo = Image.open("Images/itunes-logo.png")
+    itunes_logo = ImageTk.PhotoImage(itunes_logo, master=frame)
+    
+    lbl_title = Label(frame,font=text_font3, image=itunes_logo, text="AUDIO PLAYER", compound="right", bg=color_dark_gray, foreground=color_white)
+    lbl_title.grid(column=1,row=0,padx=10,pady=10, sticky="N")
+    
+    lbl_songname = Label(frame,font=text_font3, text="Now playing: ", bg=color_dark_gray, foreground=color_white)
+    lbl_songname.grid(column=1,row=1,padx=10,pady=10)
+    
+    #lblImage = Label(frame, fg=color_black )
+    #lblImage.grid(column=1, row=1,padx=10,pady=10)
+    
+    #btn_close = Button(frame, text="PLAY", command=lambda: playAudioFiles(audioList), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    #btn_close.grid(column=1,row=2,padx=10,pady=10)
+    
+    btn_close = Button(frame, text="CLOSE", command=lambda: closeAudio(root), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_close.grid(column=1,row=3,padx=10,pady=10, sticky="S")
+    
+    playAudioFiles(audioList, lbl_songname)
+    
+    root.mainloop()
+
+#Se encarga de reproducir los sonidos en bucle
+def playAudioFiles(audioList, label):
+    #Se inicializa el reproductor
+    
+    pygame.mixer.init()
+    pygame.init()
+    clock = pygame.time.Clock()
+    flag = False
+    #Se van cargando los sonidos en bucle
+    for cancion in audioList:
+        label.configure(text="Now Playing: " + cancion)
+        if not flag:
+            pygame.mixer.music.load("/home/raspberry/Desktop/PiTV/Audio/" + cancion)
+            pygame.mixer.music.play()
+            flag = True
+        pygame.mixer.music.queue("/home/raspberry/Desktop/PiTV/Audio/" + cancion)
+        #pygame.mixer.music.play()
+
+def closeAudio(root):
+    
+    #pygame.mixer.music.stop()
+    root.destroy()
+        
 def openImageGallery(imageList):
     root = Tk()
     width = root.winfo_screenwidth()
