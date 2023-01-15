@@ -8,7 +8,6 @@ from PIL import ImageTk
 import cv2
 import imutils
 #Biblioteca para manejo de audio
-import pygame
 from audioplayer import AudioPlayer
 #Bibliotecas necesarias para instrucciones del SO
 import os
@@ -31,8 +30,8 @@ color_white = "#FFFFFF"
 #Variables globales necesarias para el manejo de imagenes y video
 image = None
 cap = None
-mixer = None
 imageIndex = 0
+songIndex = 0
 songToPlay = None
 
 #Lista los archivos de una ruta especifica
@@ -140,6 +139,9 @@ def verifyFilesType():
         print("Archivos mixtos")
 
 def openAudios(audioList):
+    global songToPlay
+    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[0])
+    
     root = Tk()
     width = root.winfo_screenwidth()
     height = root.winfo_screenheight()
@@ -175,34 +177,34 @@ def openAudios(audioList):
     lbl_title = Label(frame,font=text_font3, image=itunes_logo, text="AUDIO PLAYER", compound="right", bg=color_dark_gray, foreground=color_white)
     lbl_title.grid(column=2,row=0,padx=10,pady=10, sticky="N", columnspan=2)
     
-    lbl_songname = Label(frame,font=text_font3, image=song_playing_logo, text="Now playing: ", compound="top", bg=color_dark_gray, foreground=color_white)
+    lbl_songname = Label(frame,font=text_font3, image=song_playing_logo, text="Now playing: " + str(audioList[0]), compound="top", bg=color_dark_gray, foreground=color_white)
     lbl_songname.grid(column=2,row=1,padx=10,pady=10, columnspan=2)
     
     #lblImage = Label(frame, fg=color_black )
     #lblImage.grid(column=1, row=1,padx=10,pady=10)
     
-    btn_prev = Button(frame, text="PREVIOUS", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_prev = Button(frame, text="PREVIOUS", command=lambda: playPreviousAudio(audioList, lbl_songname), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_prev.grid(column=0,row=2,padx=10,pady=10,ipadx=10,ipady=10)
     
-    btn_play = Button(frame, text="PLAY", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_play = Button(frame, text="PLAY", command=lambda: playAudio(audioList, lbl_songname), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_play.grid(column=1,row=2,padx=10,pady=10)
     
-    btn_pause = Button(frame, text="PAUSE", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_pause = Button(frame, text="PAUSE", command=pauseAudio, font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_pause.grid(column=2,row=2,padx=10,pady=10)
     
-    btn_resume = Button(frame, text="RESUME", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_resume = Button(frame, text="RESUME", command=resumeAudio, font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_resume.grid(column=3,row=2,padx=10,pady=10)
     
-    btn_stop = Button(frame, text="STOP", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_stop = Button(frame, text="STOP", command=stopAudio, font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_stop.grid(column=4,row=2,padx=10,pady=10)
     
-    btn_next = Button(frame, text="NEXT", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_next = Button(frame, text="NEXT", command=lambda: playNextAudio(audioList, lbl_songname), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_next.grid(column=5,row=2,padx=10,pady=10,ipadx=10,ipady=10)
     
     btn_close = Button(frame, text="CLOSE", command=lambda: closeAudio(root), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_close.grid(column=2,row=3,padx=10,pady=10, sticky="S", columnspan=2)
     
-    playAudioFiles(audioList, lbl_songname)
+    #playAudioFiles(audioList, lbl_songname)
     
     root.mainloop()
 
@@ -213,6 +215,48 @@ def playAudioFiles(audioList, label):
     songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[0])
     songToPlay.play(loop=True, block=False)
     label.configure(text="Playing: " + str(audioList[0]))
+    
+def playAudio(audioList, label):
+    global songIndex
+    global songToPlay
+    
+    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[songIndex])
+    songToPlay.play(loop=True, block=False)
+    label.configure(text="Playing: " + str(audioList[songIndex]))
+
+def pauseAudio():
+    global songToPlay
+    songToPlay.pause()
+    
+def resumeAudio():
+    global songToPlay
+    songToPlay.resume()
+
+def stopAudio():
+    global songToPlay
+    songToPlay.stop()
+    
+def playPreviousAudio(audioList,label):
+    global songIndex
+    global songToPlay
+    
+    songIndex -= 1
+    if(songIndex == -1):
+        songIndex += 1
+    else:
+        songToPlay.stop()
+        playAudio(audioList, label)
+
+def playNextAudio(audioList,label):
+    global songIndex
+    global songToPlay
+    
+    songIndex += 1
+    if(songIndex == len(audioList)):
+        songIndex -= 1
+    else:
+        songToPlay.stop()
+        playAudio(audioList, label)
 
 def closeAudio(root):
     global songToPlay
