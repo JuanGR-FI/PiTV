@@ -9,6 +9,7 @@ import cv2
 import imutils
 #Biblioteca para manejo de audio
 import pygame
+from audioplayer import AudioPlayer
 #Bibliotecas necesarias para instrucciones del SO
 import os
 from os import listdir
@@ -32,6 +33,7 @@ image = None
 cap = None
 mixer = None
 imageIndex = 0
+songToPlay = None
 
 #Lista los archivos de una ruta especifica
 def listDirFiles(path):    
@@ -39,10 +41,9 @@ def listDirFiles(path):
 
 #Se encarga de abrir una nueva ventana para poder reproducir Netflix
 def playNetflix():
-    global url_netflix
+    #global url_netflix
     
-    webbrowser.open(url_netflix, new=1)
-    
+    #webbrowser.open(url_netflix, new=1)
     root = Toplevel()
     root.configure(bg=color_black)
     width = root.winfo_screenwidth()
@@ -55,14 +56,16 @@ def playNetflix():
     
     btn_close = Button(root, command=lambda: closeWindowAndBrowser(root), text="RETURN", font=text_font5, width=20, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_close.grid(column=0,row=0,padx=2,pady=2)
+    
+    root.after(100, openNetflixBrowser)
     
     root.mainloop()
 
 #Se encarga de abrir una nueva ventana para poder reproducir Spotify
 def playSpotify():
-    global url_spotify
+    #global url_spotify
     
-    webbrowser.open(url_spotify, new=1)
+    #webbrowser.open(url_spotify, new=1)
     
     root = Toplevel()
     root.configure(bg=color_black)
@@ -77,7 +80,18 @@ def playSpotify():
     btn_close = Button(root, command=lambda: closeWindowAndBrowser(root), text="RETURN", font=text_font5, width=20, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_close.grid(column=0,row=0,padx=2,pady=2)
     
+    root.after(100, openSpotifyBrowser)
+    
     root.mainloop()
+
+def openNetflixBrowser():
+    global url_netflix
+    webbrowser.open(url_netflix, new=1)
+
+def openSpotifyBrowser():
+    global url_spotify
+    webbrowser.open(url_spotify, new=1)
+    
 
 #Se encarga de cerrar el navegador cuando se quiera regresar al menu principal
 def closeWindowAndBrowser(root):
@@ -142,6 +156,9 @@ def openAudios(audioList):
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=1)
     frame.columnconfigure(2, weight=1)
+    frame.columnconfigure(3, weight=1)
+    frame.columnconfigure(4, weight=1)
+    frame.columnconfigure(5, weight=1)
     frame.rowconfigure(0, weight=1)
     frame.rowconfigure(1, weight=1)
     frame.rowconfigure(2, weight=1)
@@ -152,20 +169,38 @@ def openAudios(audioList):
     itunes_logo = Image.open("Images/itunes-logo.png")
     itunes_logo = ImageTk.PhotoImage(itunes_logo, master=frame)
     
-    lbl_title = Label(frame,font=text_font3, image=itunes_logo, text="AUDIO PLAYER", compound="right", bg=color_dark_gray, foreground=color_white)
-    lbl_title.grid(column=1,row=0,padx=10,pady=10, sticky="N")
+    song_playing_logo = Image.open("Images/song-playing-logo.png")
+    song_playing_logo = ImageTk.PhotoImage(song_playing_logo, master=frame)
     
-    lbl_songname = Label(frame,font=text_font3, text="Now playing: ", bg=color_dark_gray, foreground=color_white)
-    lbl_songname.grid(column=1,row=1,padx=10,pady=10)
+    lbl_title = Label(frame,font=text_font3, image=itunes_logo, text="AUDIO PLAYER", compound="right", bg=color_dark_gray, foreground=color_white)
+    lbl_title.grid(column=2,row=0,padx=10,pady=10, sticky="N", columnspan=2)
+    
+    lbl_songname = Label(frame,font=text_font3, image=song_playing_logo, text="Now playing: ", compound="top", bg=color_dark_gray, foreground=color_white)
+    lbl_songname.grid(column=2,row=1,padx=10,pady=10, columnspan=2)
     
     #lblImage = Label(frame, fg=color_black )
     #lblImage.grid(column=1, row=1,padx=10,pady=10)
     
-    #btn_close = Button(frame, text="PLAY", command=lambda: playAudioFiles(audioList), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    #btn_close.grid(column=1,row=2,padx=10,pady=10)
+    btn_prev = Button(frame, text="PREVIOUS", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_prev.grid(column=0,row=2,padx=10,pady=10,ipadx=10,ipady=10)
+    
+    btn_play = Button(frame, text="PLAY", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_play.grid(column=1,row=2,padx=10,pady=10)
+    
+    btn_pause = Button(frame, text="PAUSE", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_pause.grid(column=2,row=2,padx=10,pady=10)
+    
+    btn_resume = Button(frame, text="RESUME", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_resume.grid(column=3,row=2,padx=10,pady=10)
+    
+    btn_stop = Button(frame, text="STOP", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_stop.grid(column=4,row=2,padx=10,pady=10)
+    
+    btn_next = Button(frame, text="NEXT", font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_next.grid(column=5,row=2,padx=10,pady=10,ipadx=10,ipady=10)
     
     btn_close = Button(frame, text="CLOSE", command=lambda: closeAudio(root), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_close.grid(column=1,row=3,padx=10,pady=10, sticky="S")
+    btn_close.grid(column=2,row=3,padx=10,pady=10, sticky="S", columnspan=2)
     
     playAudioFiles(audioList, lbl_songname)
     
@@ -173,24 +208,15 @@ def openAudios(audioList):
 
 #Se encarga de reproducir los sonidos en bucle
 def playAudioFiles(audioList, label):
-    #Se inicializa el reproductor
+    global songToPlay
     
-    pygame.mixer.init()
-    pygame.init()
-    clock = pygame.time.Clock()
-    flag = False
-    #Se van cargando los sonidos en bucle
-    for cancion in audioList:
-        label.configure(text="Now Playing: " + cancion)
-        if not flag:
-            pygame.mixer.music.load("/home/raspberry/Desktop/PiTV/Audio/" + cancion)
-            pygame.mixer.music.play()
-            flag = True
-        pygame.mixer.music.queue("/home/raspberry/Desktop/PiTV/Audio/" + cancion)
-        #pygame.mixer.music.play()
+    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[0])
+    songToPlay.play(loop=True, block=False)
+    label.configure(text="Playing: " + str(audioList[0]))
 
 def closeAudio(root):
-    
+    global songToPlay
+    songToPlay.stop()
     #pygame.mixer.music.stop()
     root.destroy()
         
