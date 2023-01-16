@@ -13,6 +13,7 @@ from audioplayer import AudioPlayer
 import os
 from os import listdir
 from os.path import isfile, isdir
+import subprocess
 from subprocess import Popen, PIPE
 from signal import SIGTERM
 #Biblioteca necesaria para abrir navegadores web
@@ -33,6 +34,9 @@ cap = None
 imageIndex = 0
 songIndex = 0
 songToPlay = None
+videoRoot = None
+lblVideoGlobal = None
+lblVideoPathGlobal = None
 
 #Lista los archivos de una ruta especifica
 def listDirFiles(path):    
@@ -112,7 +116,7 @@ def verifyFilesType():
     files=listDirFiles("/home/raspberry/Desktop/PiTV/Images/Test/")
     files2=listDirFiles("/home/raspberry/Desktop/PiTV/Videos/")
     files3=listDirFiles("/home/raspberry/Desktop/PiTV/Audio/")
-    for file in files3:
+    for file in files2:
         split_tup = os.path.splitext(file)
         extension = split_tup[1]
         print(file + " extension: " + extension)
@@ -311,73 +315,8 @@ def openImageGallery(imageList):
     root.mainloop()
 
 def openVideos(videoList):
-    root = Tk()
-    width = root.winfo_screenwidth()
-    height = root.winfo_screenheight()
-    root.title("Video Player")
-    #root.geometry("%dx%d" % (width,height))
-    root.attributes('-fullscreen', True)
-    root.configure(bg=color_black)
+    subprocess.run(['python3','videoUI.py', '/home/raspberry/Desktop/PiTV/Videos/'])
     
-    #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-Contenedor Frame Video Player*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-    frame = Frame(root)
-    frame.config(bd="10", bg=color_dark_gray)
-    frame.pack(fill="both",padx=20,pady=20, expand=True)
-    #frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
-    frame.columnconfigure(0, weight=1)
-    frame.columnconfigure(1, weight=1)
-    frame.columnconfigure(2, weight=1)
-    frame.rowconfigure(0, weight=1)
-    frame.rowconfigure(1, weight=1)
-    frame.rowconfigure(2, weight=1)
-    
-    text_font4 = Font(family="Roboto", size=40, weight="bold")
-    
-    #Imagenes utilizadas
-    video_logo = Image.open("Images/MediaPlayer-logo.png")
-    video_logo = ImageTk.PhotoImage(video_logo, master=frame)
-    
-    lbl_title = Label(frame,font=text_font4, image=video_logo, text="VIDEO PLAYER", compound="right", bg=color_dark_gray, foreground=color_white)
-    lbl_title.grid(column=0,row=0,padx=10,pady=10, sticky="WN")
-    
-    lblVideo = Label(frame, fg=color_black )
-    lblVideo.grid(column=1, row=0,padx=10,pady=10)
-    
-    btn_video = Button(frame, text="Choose video", command=lambda: chooseVideo(lblVideo, frame), font=text_font4, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_video.grid(column=0,row=1,padx=10,pady=10, sticky="W")
-    
-    btn_close = Button(frame, text="CLOSE", command=root.destroy, font=text_font4, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_close.grid(column=0,row=2,padx=10,pady=10, sticky="WS")
-    
-    root.mainloop()
-    
-def visualize(lblVideo, root):
-    global cap
-    ret, frame = cap.read()
-    if ret == True:
-        frame = imutils.resize(frame, width=640)
-        #frame = frame.resize((640,640),Image.LANCZOS)
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        
-        im = Image.fromarray(frame)
-        img = ImageTk.PhotoImage(im, master=root)
-        
-        lblVideo.configure(image=img)
-        lblVideo.image = img
-        lblVideo.after(10, visualize(lblVideo, root))
-        
-def chooseVideo(lblVideo, root):
-    global cap
-    videoPath = filedialog.askopenfilename(filetypes = [
-        ("all video format",".mp4"),
-        ("all video format",".avi")])
-    if len(videoPath) > 0:
-        print(videoPath)
-        cap = cv2.VideoCapture(videoPath)
-        visualize(lblVideo, root)
-    else:
-        print("No se selecciono ningun video")
-
 def nextImage(imList, label, root):
     global imageIndex
     imageIndex += 1
