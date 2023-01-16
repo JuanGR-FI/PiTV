@@ -53,16 +53,11 @@ def listDirDirectories(path):
 
 #Se encarga de abrir una nueva ventana para poder reproducir Netflix
 def playNetflix():
-    #global url_netflix
-    
-    #webbrowser.open(url_netflix, new=1)
     root = Toplevel()
     root.configure(bg=color_black)
     width = root.winfo_screenwidth()
-    #root.attributes('-alpha', 0.5)
     root.attributes('-type','splash')
     root.attributes('-topmost', True)
-    #root.attributes('-fullscreen', True)
     root.geometry("%dx110+0+0" % (width))
     text_font5 = Font(family="Roboto", size=10, weight="bold")
     
@@ -78,10 +73,8 @@ def playSpotify():
     root = Toplevel()
     root.configure(bg=color_black)
     width = root.winfo_screenwidth()
-    #root.attributes('-alpha', 0.5)
     root.attributes('-type','splash')
     root.attributes('-topmost', True)
-    #root.attributes('-fullscreen', True)
     root.geometry("%dx110+0+0" % (width))
     text_font5 = Font(family="Roboto", size=10, weight="bold")
     
@@ -107,41 +100,45 @@ def closeWindowAndBrowser(root):
 
 #Se encarga de verificar el tipo de archivos que tiene un directorio en especifico
 def verifyFilesType():
+    global usbActual
     #Se guardan los nombres de los archivos que se vayan encontrando
     imageFiles = []
     videoFiles = []
     audioFiles = []
     
     #Se manda la ruta del directorio que queremos buscar
-    files=listDirFiles("/home/raspberry/Desktop/PiTV/Images/Test/")
-    files2=listDirFiles("/home/raspberry/Desktop/PiTV/Videos/")
-    files3=listDirFiles("/home/raspberry/Desktop/PiTV/Audio/")
-    files4=listDirFiles("/home/raspberry/Desktop/PiTV/Mix/")
-    for file in files4:
-        split_tup = os.path.splitext(file)
-        extension = split_tup[1]
-        print(file + " extension: " + extension)
-        if(extension == ".jpg" or extension == ".jpeg" or extension == ".png"):
-            imageFiles.append(file)
-        elif(extension == ".mp4" or extension == ".avi"):
-            videoFiles.append(file)
-        elif(extension == ".mp3"):
-            audioFiles.append(file)
-        else:
-            print("File extension not supported...")
-            
-    print("Video files: " + str(videoFiles))
-    print("Image files: " + str(imageFiles))
-    print("Audio files: " + str(audioFiles))
+    files=listDirFiles("/media/raspberry/" + usbActual + "/")
     
-    if(len(imageFiles) > 0 and len(videoFiles) == 0 and len(audioFiles) == 0):
-        openImageGallery(imageFiles)
-    elif(len(videoFiles) > 0 and len(imageFiles) == 0 and len(audioFiles) == 0):
-        openVideos(videoFiles)
-    elif(len(audioFiles) > 0 and len(imageFiles) == 0 and len(videoFiles) == 0):
-        openAudios(audioFiles)
+    if(len(files) != 0):
+        for file in files:
+            split_tup = os.path.splitext(file)
+            extension = split_tup[1]
+            print(file + " extension: " + extension)
+            if(extension == ".jpg" or extension == ".jpeg" or extension == ".png"):
+                imageFiles.append(file)
+            elif(extension == ".mp4" or extension == ".avi"):
+                videoFiles.append(file)
+            elif(extension == ".mp3"):
+                audioFiles.append(file)
+            else:
+                print("File extension not supported...")
+            
+        print("Video files: " + str(videoFiles))
+        print("Image files: " + str(imageFiles))
+        print("Audio files: " + str(audioFiles))
+    
+        if(len(imageFiles) > 0 and len(videoFiles) == 0 and len(audioFiles) == 0):
+            openImageGallery(imageFiles)
+        elif(len(videoFiles) > 0 and len(imageFiles) == 0 and len(audioFiles) == 0):
+            openVideos()
+        elif(len(audioFiles) > 0 and len(imageFiles) == 0 and len(videoFiles) == 0):
+            openAudios(audioFiles)
+        else:
+            openFilesSelection(imageFiles, videoFiles, audioFiles)
     else:
-        openFilesSelection(imageFiles, videoFiles, audioFiles)
+        print("No files in the usb...")
+    
+    
 
 def openFilesSelection(imageList, videoList, audioList):
     root = Tk()
@@ -182,27 +179,48 @@ def openFilesSelection(imageList, videoList, audioList):
     
     lbl_title = Label(frame,font=text_font, image=directory_logo, text="FILE MANAGER", compound="right", bg=color_dark_gray, foreground=color_white)
     lbl_title.grid(column=1,row=0,padx=10,pady=10)
+    
+    lbl_title = Label(frame,font=text_font, text="Multiple files found, select an option.", bg=color_dark_gray, foreground=color_white)
+    lbl_title.grid(column=1,row=1,padx=10,pady=10)
 
-    btn_netflix = Button(frame, image = imagegallery_logo, command=lambda: openImageGallery(imageList), text="PHOTOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_netflix.grid(column=0,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+    btn_photos = Button(frame, state="disabled", image = imagegallery_logo, command=lambda: openImageGallery(imageList), text="PHOTOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_photos.grid(column=0,row=2,padx=10,pady=10, ipadx=150, ipady=150)
 
-    btn_spotify = Button(frame, image = videogallery_logo, command=lambda: openVideos(videoList), text="VIDEOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_spotify.grid(column=1,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+    btn_videos = Button(frame, state="disabled", image = videogallery_logo, command=openVideos, text="VIDEOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_videos.grid(column=1,row=2,padx=10,pady=10, ipadx=150, ipady=150)
 
-    btn_media = Button(frame, state="disabled", image = audioplayer_logo,command=lambda: openAudios(audioList), text="TRACKS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_media.grid(column=2,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+    btn_tracks = Button(frame, state="disabled", image = audioplayer_logo,command=lambda: openAudios(audioList), text="TRACKS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_tracks.grid(column=2,row=2,padx=10,pady=10, ipadx=150, ipady=150)
 
     btn_close = Button(frame, text="CLOSE", command=lambda: closeFileManager(root), font=text_font, width=10, height=2, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-    btn_close.grid(column=1,row=2,padx=10,pady=10, sticky="S")
-    
+    btn_close.grid(column=1,row=3,padx=10,pady=10, sticky="S")
+
+    root.after(500, updateButtonState(btn_photos, btn_videos, btn_tracks, imageList, videoList, audioList))
+
     root.mainloop()
+
+def updateButtonState(btnPhoto, btnVideo, btnTrack, imageList, videoList, audioList):
+    if(len(imageList) == 0):
+        btnPhoto.configure(state="disabled")
+    else:
+       btnPhoto.configure(state="normal")
+    if(len(videoList) == 0):
+        btnVideo.configure(state="disabled")
+    else:
+       btnVideo.configure(state="normal")
+    if(len(audioList) == 0):
+        btnTrack.configure(state="disabled")
+    else:
+       btnTrack.configure(state="normal")
 
 def closeFileManager(root):
     root.destroy()
 
 def openAudios(audioList):
     global songToPlay
-    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[0])
+    global usbActual
+    
+    songToPlay = AudioPlayer("/media/raspberry/" + usbActual + "/" + audioList[0])
     
     root = Tk()
     width = root.winfo_screenwidth()
@@ -269,7 +287,7 @@ def openAudios(audioList):
 def playAudioFiles(audioList, label):
     global songToPlay
     
-    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[0])
+    songToPlay = AudioPlayer("/media/raspberry/" + usbActual + "/" + audioList[0])
     songToPlay.play(loop=True, block=False)
     label.configure(text="Playing: " + str(audioList[0]))
     
@@ -277,7 +295,7 @@ def playAudio(audioList, label):
     global songIndex
     global songToPlay
     
-    songToPlay = AudioPlayer("/home/raspberry/Desktop/PiTV/Audio/" + audioList[songIndex])
+    songToPlay = AudioPlayer("/media/raspberry/" + usbActual + "/" + audioList[songIndex])
     songToPlay.play(loop=True, block=False)
     label.configure(text="Playing: " + str(audioList[songIndex]))
 
@@ -317,8 +335,10 @@ def playNextAudio(audioList,label):
 
 def closeAudio(root):
     global songToPlay
+    global songIndex
+    
     songToPlay.stop()
-    #pygame.mixer.music.stop()
+    songIndex = 0
     root.destroy()
         
 def openImageGallery(imageList):
@@ -367,8 +387,11 @@ def openImageGallery(imageList):
     
     root.mainloop()
 
-def openVideos(videoList):
-    subprocess.run(['python3','videoUI.py', '/home/raspberry/Desktop/PiTV/Videos/'])
+def openVideos():
+    global usbActual
+    
+    path = "/media/raspberry/" + usbActual + "/"
+    subprocess.run(['python3','videoUI.py', path])
     
 def nextImage(imList, label, root):
     global imageIndex
@@ -390,7 +413,7 @@ def putImage(lblImage, root, imName):
     global image
     lblImage.image = ""
     print("Cambiando a imagen: " + imName)
-    path = "/home/raspberry/Desktop/PiTV/Images/Test/" + imName
+    path = "/media/raspberry/" + usbActual + "/" + imName
     image = Image.open(path)
     width, height = image.size
     if(width == height):
@@ -433,6 +456,7 @@ def monitorUSB():
         usbActual = usb_devices[0]
         print("USB detected: " + usbActual)
         btn_media.configure(state="normal")
+        verifyFilesType()
     elif(len(usb_devices) == 0 and usbPlugged):
         usbPlugged = False
         usbActual = ""
@@ -446,7 +470,7 @@ def monitorUSB():
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-PROGRAMA PRINCIPAL*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-    
+
 #Creando ventana principal
 root = Tk()
 

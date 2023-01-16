@@ -19,6 +19,7 @@ color_white = "#FFFFFF"
 videoFiles = []
 videoIndex = 0
 PATH = ""
+cap = None
 
 #Lista los archivos de una ruta especifica
 def listDirFiles(path):    
@@ -122,8 +123,9 @@ def closeWindow(root):
 script, path = argv
 listVideoFiles(path)
 PATH = path
+
 print("La ruta que me llego fue: " + path)
-cap = None
+
 root = Tk()
 root.configure(bg=color_black)
 width = root.winfo_screenwidth()
