@@ -18,6 +18,10 @@ from subprocess import Popen, PIPE
 from signal import SIGTERM
 #Biblioteca necesaria para abrir navegadores web
 import webbrowser
+#Biblioteca para generar hilos
+import threading
+#Biblioteca para el manejo de eventos de USB
+import pyudev
 
 #URLs
 url_netflix = "https://www.netflix.com"
@@ -37,10 +41,15 @@ songToPlay = None
 videoRoot = None
 lblVideoGlobal = None
 lblVideoPathGlobal = None
-
+usbActual = ""
+usbPlugged = False
+    
 #Lista los archivos de una ruta especifica
 def listDirFiles(path):    
     return [obj for obj in listdir(path) if isfile(path + obj)]
+
+def listDirDirectories(path):    
+    return [obj for obj in listdir(path) if isdir(path + obj)]
 
 #Se encarga de abrir una nueva ventana para poder reproducir Netflix
 def playNetflix():
@@ -66,10 +75,6 @@ def playNetflix():
 
 #Se encarga de abrir una nueva ventana para poder reproducir Spotify
 def playSpotify():
-    #global url_spotify
-    
-    #webbrowser.open(url_spotify, new=1)
-    
     root = Toplevel()
     root.configure(bg=color_black)
     width = root.winfo_screenwidth()
@@ -95,7 +100,6 @@ def openSpotifyBrowser():
     global url_spotify
     webbrowser.open(url_spotify, new=1)
     
-
 #Se encarga de cerrar el navegador cuando se quiera regresar al menu principal
 def closeWindowAndBrowser(root):
     kill_process("chromium-browse")
@@ -344,8 +348,7 @@ def putImage(lblImage, root, imName):
         image = image.resize((500,500),Image.LANCZOS)
     else:
         image = image.resize((600,400),Image.LANCZOS)
-    
-    
+
     img = ImageTk.PhotoImage(image, master=root)
     lblImage.configure(image=img)
     lblImage.image = img
@@ -371,7 +374,26 @@ def kill_process(name):
                     print(e)
     else:
         print("No hay procesos activos...")
-    
+        
+def monitorUSB():
+    global usbActual
+    global usbPlugged
+    usb_devices = listDirDirectories("/media/raspberry/")
+    if(len(usb_devices) != 0 and not usbPlugged):
+        usbPlugged = True
+        usbActual = usb_devices[0]
+        print("USB detected: " + usbActual)
+        root.configure(bg="#FF0000")
+    elif(len(usb_devices) == 0 and usbPlugged):
+        usbPlugged = False
+        usbActual = ""
+    else:
+        print("Looking for usb...")
+        
+        
+    root.after(1000, monitorUSB)
+
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-PROGRAMA PRINCIPAL*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
 #Creando ventana principal
 root = Tk()
@@ -405,7 +427,6 @@ usb_logo = ImageTk.PhotoImage(usb_logo)
 frame = Frame(root)
 frame.config(bd="10", bg=color_dark_gray)
 frame.pack(fill="both",expand=True, padx=20,pady=20)
-#frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
 frame.columnconfigure(0, weight=1)
 frame.columnconfigure(1, weight=1)
 frame.columnconfigure(2, weight=1)
@@ -433,6 +454,8 @@ btn_close.grid(column=1,row=2,padx=10,pady=10, sticky="S")
 
 lbl_copyright = Label(frame,text="© Copyright 2023", compound="right", bg=color_dark_gray, foreground=color_white)
 lbl_copyright.grid(column=2,row=2,padx=10,pady=10, sticky="SE")
+
+root.after(2000, monitorUSB)
 
 root.mainloop()
 
