@@ -107,10 +107,6 @@ def closeWindowAndBrowser(root):
 
 #Se encarga de verificar el tipo de archivos que tiene un directorio en especifico
 def verifyFilesType():
-    """path = filedialog.askopenfilename(filetypes = [
-        ("image",".jpg"),
-        ("image",".jpeg"),
-        ("image",".png")])"""
     #Se guardan los nombres de los archivos que se vayan encontrando
     imageFiles = []
     videoFiles = []
@@ -120,7 +116,8 @@ def verifyFilesType():
     files=listDirFiles("/home/raspberry/Desktop/PiTV/Images/Test/")
     files2=listDirFiles("/home/raspberry/Desktop/PiTV/Videos/")
     files3=listDirFiles("/home/raspberry/Desktop/PiTV/Audio/")
-    for file in files2:
+    files4=listDirFiles("/home/raspberry/Desktop/PiTV/Mix/")
+    for file in files4:
         split_tup = os.path.splitext(file)
         extension = split_tup[1]
         print(file + " extension: " + extension)
@@ -144,7 +141,64 @@ def verifyFilesType():
     elif(len(audioFiles) > 0 and len(imageFiles) == 0 and len(videoFiles) == 0):
         openAudios(audioFiles)
     else:
-        print("Archivos mixtos")
+        openFilesSelection(imageFiles, videoFiles, audioFiles)
+
+def openFilesSelection(imageList, videoList, audioList):
+    root = Tk()
+    width = root.winfo_screenwidth()
+    height = root.winfo_screenheight()
+    root.title("Select Files")
+    root.attributes('-fullscreen', True)
+    root.configure(bg=color_black)
+    
+    #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-Contenedor Frame Seleccion de archivos*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+    frame = Frame(root)
+    frame.config(bd="10", bg=color_dark_gray)
+    frame.pack(fill="both",padx=20,pady=20, expand=True)
+    #frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
+    frame.columnconfigure(0, weight=1)
+    frame.columnconfigure(1, weight=1)
+    frame.columnconfigure(2, weight=1)
+    
+    frame.rowconfigure(0, weight=1)
+    frame.rowconfigure(1, weight=1)
+    frame.rowconfigure(2, weight=1)
+    frame.rowconfigure(3, weight=1)
+    
+    text_font = Font(family="Roboto", size=40, weight="bold")
+    
+    #Imagenes utilizadas
+    directory_logo = Image.open("Images/directory-logo.png")
+    directory_logo = ImageTk.PhotoImage(directory_logo, master=frame)
+    
+    imagegallery_logo = Image.open("Images/image-gallery-logo.png")
+    imagegallery_logo = ImageTk.PhotoImage(imagegallery_logo, master=frame)
+    
+    videogallery_logo = Image.open("Images/video-gallery-logo.png")
+    videogallery_logo = ImageTk.PhotoImage(videogallery_logo, master=frame)
+    
+    audioplayer_logo = Image.open("Images/audio-player-logo.png")
+    audioplayer_logo = ImageTk.PhotoImage(audioplayer_logo, master=frame)
+    
+    lbl_title = Label(frame,font=text_font, image=directory_logo, text="FILE MANAGER", compound="right", bg=color_dark_gray, foreground=color_white)
+    lbl_title.grid(column=1,row=0,padx=10,pady=10)
+
+    btn_netflix = Button(frame, image = imagegallery_logo, command=lambda: openImageGallery(imageList), text="PHOTOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_netflix.grid(column=0,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+
+    btn_spotify = Button(frame, image = videogallery_logo, command=lambda: openVideos(videoList), text="VIDEOS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_spotify.grid(column=1,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+
+    btn_media = Button(frame, state="disabled", image = audioplayer_logo,command=lambda: openAudios(audioList), text="TRACKS", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_media.grid(column=2,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+
+    btn_close = Button(frame, text="CLOSE", command=lambda: closeFileManager(root), font=text_font, width=10, height=2, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+    btn_close.grid(column=1,row=2,padx=10,pady=10, sticky="S")
+    
+    root.mainloop()
+
+def closeFileManager(root):
+    root.destroy()
 
 def openAudios(audioList):
     global songToPlay
@@ -158,7 +212,7 @@ def openAudios(audioList):
     root.attributes('-fullscreen', True)
     root.configure(bg=color_black)
     
-    #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-Contenedor Frame Galeria de imagenes*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+    #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-Contenedor Frame Reproductor de Audio*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
     frame = Frame(root)
     frame.config(bd="10", bg=color_dark_gray)
     frame.pack(fill="both",padx=20,pady=20, expand=True)
@@ -188,9 +242,6 @@ def openAudios(audioList):
     lbl_songname = Label(frame,font=text_font3, image=song_playing_logo, text="Now playing: " + str(audioList[0]), compound="top", bg=color_dark_gray, foreground=color_white)
     lbl_songname.grid(column=2,row=1,padx=10,pady=10, columnspan=2)
     
-    #lblImage = Label(frame, fg=color_black )
-    #lblImage.grid(column=1, row=1,padx=10,pady=10)
-    
     btn_prev = Button(frame, text="PREVIOUS", command=lambda: playPreviousAudio(audioList, lbl_songname), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_prev.grid(column=0,row=2,padx=10,pady=10,ipadx=10,ipady=10)
     
@@ -211,8 +262,6 @@ def openAudios(audioList):
     
     btn_close = Button(frame, text="CLOSE", command=lambda: closeAudio(root), font=text_font3, width=30, height=5, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
     btn_close.grid(column=2,row=3,padx=10,pady=10, sticky="S", columnspan=2)
-    
-    #playAudioFiles(audioList, lbl_songname)
     
     root.mainloop()
 
@@ -383,18 +432,21 @@ def monitorUSB():
         usbPlugged = True
         usbActual = usb_devices[0]
         print("USB detected: " + usbActual)
-        root.configure(bg="#FF0000")
+        btn_media.configure(state="normal")
     elif(len(usb_devices) == 0 and usbPlugged):
         usbPlugged = False
         usbActual = ""
+        btn_media.configure(state="disabled")
+        print("USB unplugged...")
     else:
         print("Looking for usb...")
         
-        
     root.after(1000, monitorUSB)
 
-#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-PROGRAMA PRINCIPAL*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
-
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-PROGRAMA PRINCIPAL*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+    
 #Creando ventana principal
 root = Tk()
 
@@ -446,8 +498,8 @@ btn_netflix.grid(column=0,row=1,padx=10,pady=10, ipadx=150, ipady=150)
 btn_spotify = Button(frame, image = spotify_logo, command=playSpotify, text="SPOTIFY", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
 btn_spotify.grid(column=1,row=1,padx=10,pady=10, ipadx=150, ipady=150)
 
-btn_imagenes = Button(frame, image = usb_logo,command=verifyFilesType, text="MEDIA", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
-btn_imagenes.grid(column=2,row=1,padx=10,pady=10, ipadx=150, ipady=150)
+btn_media = Button(frame, state="disabled", image = usb_logo,command=verifyFilesType, text="MEDIA", compound="top",width=30, height=30, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
+btn_media.grid(column=2,row=1,padx=10,pady=10, ipadx=150, ipady=150)
 
 btn_close = Button(frame, text="CLOSE", command=root.destroy, font=text_font, width=10, height=2, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
 btn_close.grid(column=1,row=2,padx=10,pady=10, sticky="S")
@@ -455,6 +507,8 @@ btn_close.grid(column=1,row=2,padx=10,pady=10, sticky="S")
 lbl_copyright = Label(frame,text="© Copyright 2023", compound="right", bg=color_dark_gray, foreground=color_white)
 lbl_copyright.grid(column=2,row=2,padx=10,pady=10, sticky="SE")
 
+#Se hace el monitoreo un tiempo despues de iniciada la aplicacion para
+#dar cierto margen para que se carguen los elementos de la UI
 root.after(2000, monitorUSB)
 
 root.mainloop()

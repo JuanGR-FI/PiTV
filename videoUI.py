@@ -53,7 +53,7 @@ def chooseVideoToPlay():
         ("all video format", ".mp4"),
         ("all video format", ".avi")])
     if len(video_path) > 0:
-        lblInfoVideoPath.configure(text="Now playing" + video_path)
+        lblInfoVideoPath.configure(text="Now playing: " + video_path)
         cap = cv2.VideoCapture(video_path)
         visualize()
     else:
@@ -87,7 +87,7 @@ def playGalleryMode():
         cap.release()
         cap = None
     if(videoIndex != len(videoFiles)):
-        lblInfoVideoPath.configure(text="Now playing" + videoFiles[videoIndex])
+        lblInfoVideoPath.configure(text="Now playing: " + videoFiles[videoIndex])
         cap = cv2.VideoCapture(PATH + videoFiles[videoIndex])
         visualizeNext()
     else:
@@ -129,7 +129,8 @@ root.configure(bg=color_black)
 width = root.winfo_screenwidth()
 height = root.winfo_screenheight()
 root.title("Video Player")
-root.geometry("%dx%d" % (width,height))
+#root.geometry("%dx%d" % (width,height))
+root.attributes('-fullscreen', True)
 root.columnconfigure(0, weight=1)
 root.columnconfigure(1, weight=1)
 root.columnconfigure(2, weight=1)
@@ -155,7 +156,7 @@ btnGallery.grid(column=2, row=1, padx=5, pady=5, sticky="WSEN")
 lblInfoVideoPath = Label(root, text="No video selected yet...", bg=color_black, foreground=color_white)
 lblInfoVideoPath.grid(column=1, row=2,padx=5,pady=5)
 
-lblVideo = Label(root, bg=color_dark_gray, image=nofile_logo)
+lblVideo = Label(root, bg=color_black, image=nofile_logo)
 lblVideo.grid(column=1, row=3,padx=5,pady=5, columnspan=2)
 
 btn_close = Button(root, command=lambda: closeWindow(root), text="RETURN", font=text_font, bg=color_black, fg=color_white, highlightbackground=color_dark_gray, activebackground="#272727")
