@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+## videoUI.py
+## Ejecuta la interfaz grafica del reproductor de videos
 ## FACULTAD DE INGENIERIA
 ## FUNDAMENTOS DE SISTEMAS DISTRIBUIDOS
+## AUTORES:
 ## CELIS DIAZ MIGUEL ANGEL
 ## CERVANTES GUATI ROJO JUAN ANDRES
 ## LOPEZ HERNANDEZ EMANUEL
-## ALVIRDE SOSA ANGEL
+## SOSA ALVIRDE PEDRO ANGEL
+## License: MIT
 ## SEMESTRE 2023-1
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 

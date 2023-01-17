@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+## piTV.py
+## Ejecuta la aplicacion del centro multimedia
 ## FACULTAD DE INGENIERIA
 ## FUNDAMENTOS DE SISTEMAS DISTRIBUIDOS
+## AUTORES:
 ## CELIS DIAZ MIGUEL ANGEL
 ## CERVANTES GUATI ROJO JUAN ANDRES
 ## LOPEZ HERNANDEZ EMANUEL
-## ALVIRDE SOSA ANGEL
+## SOSA ALVIRDE PEDRO ANGEL
+## License: MIT
 ## SEMESTRE 2023-1
 #*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
 
