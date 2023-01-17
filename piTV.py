@@ -1,3 +1,15 @@
+#!/usr/bin/env python3
+
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+## FACULTAD DE INGENIERIA
+## FUNDAMENTOS DE SISTEMAS DISTRIBUIDOS
+## CELIS DIAZ MIGUEL ANGEL
+## CERVANTES GUATI ROJO JUAN ANDRES
+## LOPEZ HERNANDEZ EMANUEL
+## ALVIRDE SOSA ANGEL
+## SEMESTRE 2023-1
+#*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-
+
 #Bibliotecas necesarias para la visualizacion de interfaces graficas
 from tkinter import *
 from tkinter.font import Font
@@ -48,6 +60,7 @@ usbPlugged = False
 def listDirFiles(path):    
     return [obj for obj in listdir(path) if isfile(path + obj)]
 
+#Lista los directorios de una ruta especifica
 def listDirDirectories(path):    
     return [obj for obj in listdir(path) if isdir(path + obj)]
 
@@ -85,10 +98,12 @@ def playSpotify():
     
     root.mainloop()
 
+#Se encarga de abrir el navegador con la url de netflix
 def openNetflixBrowser():
     global url_netflix
     webbrowser.open(url_netflix, new=1)
 
+#Se encarga de abrir el navegador con la url de spotify
 def openSpotifyBrowser():
     global url_spotify
     webbrowser.open(url_spotify, new=1)
@@ -109,6 +124,7 @@ def verifyFilesType():
     #Se manda la ruta del directorio que queremos buscar
     files=listDirFiles("/media/raspberry/" + usbActual + "/")
     
+    #Realiza el filtarado de los archivos en la USB 
     if(len(files) != 0):
         for file in files:
             split_tup = os.path.splitext(file)
@@ -126,20 +142,19 @@ def verifyFilesType():
         print("Video files: " + str(videoFiles))
         print("Image files: " + str(imageFiles))
         print("Audio files: " + str(audioFiles))
-    
+    #Se elige que opcion debe abrir dependiendo de los archivos que se encuentren en la USB
         if(len(imageFiles) > 0 and len(videoFiles) == 0 and len(audioFiles) == 0):
-            openImageGallery(imageFiles)
+            openImageGallery(imageFiles)#En caso de tener puras imagenes
         elif(len(videoFiles) > 0 and len(imageFiles) == 0 and len(audioFiles) == 0):
-            openVideos()
+            openVideos()#En caso de tener puros videos
         elif(len(audioFiles) > 0 and len(imageFiles) == 0 and len(videoFiles) == 0):
-            openAudios(audioFiles)
+            openAudios(audioFiles)#En caso de tener puras pistas deaudio
         else:
-            openFilesSelection(imageFiles, videoFiles, audioFiles)
+            openFilesSelection(imageFiles, videoFiles, audioFiles)#En caso de tener archivos de diferente tipo
     else:
         print("No files in the usb...")
     
-    
-
+#Se encarga de abrir una nueva ventana donde nos deja seleccionar que archivos de la USB deseamos visualizar
 def openFilesSelection(imageList, videoList, audioList):
     root = Tk()
     width = root.winfo_screenwidth()
@@ -152,7 +167,6 @@ def openFilesSelection(imageList, videoList, audioList):
     frame = Frame(root)
     frame.config(bd="10", bg=color_dark_gray)
     frame.pack(fill="both",padx=20,pady=20, expand=True)
-    #frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=1)
     frame.columnconfigure(2, weight=1)
@@ -199,6 +213,7 @@ def openFilesSelection(imageList, videoList, audioList):
 
     root.mainloop()
 
+#Se encarga de cambiar el estado de los botones al verificar el tipo de archivos que se tienen en la USB
 def updateButtonState(btnPhoto, btnVideo, btnTrack, imageList, videoList, audioList):
     if(len(imageList) == 0):
         btnPhoto.configure(state="disabled")
@@ -213,13 +228,16 @@ def updateButtonState(btnPhoto, btnVideo, btnTrack, imageList, videoList, audioL
     else:
        btnTrack.configure(state="normal")
 
+#Cierra la ventana del File Manager de la USB
 def closeFileManager(root):
     root.destroy()
 
+#Se encarga de abrir una nueva interfaz para reproducir las pistas de audio
 def openAudios(audioList):
     global songToPlay
     global usbActual
     
+    #Se inicializa la primer pista de audio
     songToPlay = AudioPlayer("/media/raspberry/" + usbActual + "/" + audioList[0])
     
     root = Tk()
@@ -290,7 +308,8 @@ def playAudioFiles(audioList, label):
     songToPlay = AudioPlayer("/media/raspberry/" + usbActual + "/" + audioList[0])
     songToPlay.play(loop=True, block=False)
     label.configure(text="Playing: " + str(audioList[0]))
-    
+
+#Se encarga de reproducir la pista de audio
 def playAudio(audioList, label):
     global songIndex
     global songToPlay
@@ -299,18 +318,23 @@ def playAudio(audioList, label):
     songToPlay.play(loop=True, block=False)
     label.configure(text="Playing: " + str(audioList[songIndex]))
 
+#Se encarga de pausar la pista de audio
 def pauseAudio():
     global songToPlay
     songToPlay.pause()
-    
+
+#Se encarga de resumir la pista de audio que estaba pausada
 def resumeAudio():
     global songToPlay
     songToPlay.resume()
 
+#Se encarga de detener por completo la pista de audio
 def stopAudio():
     global songToPlay
     songToPlay.stop()
-    
+
+#Cambia a la pista de audio anterior
+#Maneja un indice para recorrer la lista de pistas que tenemos en la USB
 def playPreviousAudio(audioList,label):
     global songIndex
     global songToPlay
@@ -322,6 +346,8 @@ def playPreviousAudio(audioList,label):
         songToPlay.stop()
         playAudio(audioList, label)
 
+#Cambia a la pista de audio siguiente
+#Maneja un indice para recorrer la lista de pistas que tenemos en la USB
 def playNextAudio(audioList,label):
     global songIndex
     global songToPlay
@@ -333,6 +359,7 @@ def playNextAudio(audioList,label):
         songToPlay.stop()
         playAudio(audioList, label)
 
+#Cierra la ventana del reproductor de audio y detiene las pistas de audio
 def closeAudio(root):
     global songToPlay
     global songIndex
@@ -340,13 +367,13 @@ def closeAudio(root):
     songToPlay.stop()
     songIndex = 0
     root.destroy()
-        
+
+#Se encarga de abrir la ventana para ver la galeria de imagenes
 def openImageGallery(imageList):
     root = Tk()
     width = root.winfo_screenwidth()
     height = root.winfo_screenheight()
     root.title("Image Gallery")
-    #root.geometry("%dx%d" % (width,height))
     root.attributes('-fullscreen', True)
     root.configure(bg=color_black)
     
@@ -354,7 +381,6 @@ def openImageGallery(imageList):
     frame = Frame(root)
     frame.config(bd="10", bg=color_dark_gray)
     frame.pack(fill="both",padx=20,pady=20, expand=True)
-    #frame.grid(column=0,row=0,padx=20,pady=20,sticky="NSEW")
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=1)
     frame.columnconfigure(2, weight=1)
@@ -387,12 +413,16 @@ def openImageGallery(imageList):
     
     root.mainloop()
 
+#Llama a otro script con la ruta de la usb para que abra una nueva ventana
+#con la ruta de la misma
 def openVideos():
     global usbActual
     
     path = "/media/raspberry/" + usbActual + "/"
     subprocess.run(['python3','videoUI.py', path])
-    
+
+#Cambia a la siguiente imagen de la galeria
+#Maneja un indice para recorrer la lista de imagenes que tenemos en la USB
 def nextImage(imList, label, root):
     global imageIndex
     imageIndex += 1
@@ -401,6 +431,8 @@ def nextImage(imList, label, root):
     else:
         putImage(label, root, imList[imageIndex])
 
+#Cambia a la imagen anterior de la galeria
+#Maneja un indice para recorrer la lista de imagenes que tenemos en la USB
 def prevImage(imList, label, root):
     global imageIndex
     imageIndex -= 1
@@ -408,7 +440,8 @@ def prevImage(imList, label, root):
         imageIndex += 1
     else:
         putImage(label, root, imList[imageIndex])
-    
+
+#Se encarga de actualizar la imagen actual en la galeria de imagenes
 def putImage(lblImage, root, imName):
     global image
     lblImage.image = ""
@@ -425,6 +458,8 @@ def putImage(lblImage, root, imName):
     lblImage.configure(image=img)
     lblImage.image = img
 
+#Se encarga de matar todos los procesos del navegador web,
+#esto con la finalidad de cerrar netflix y spotify
 def kill_process(name):
     ps = Popen(["ps","-e"], stdout=PIPE)
     grep = Popen(["grep", name], stdin=ps.stdout, stdout=PIPE)
@@ -446,7 +481,10 @@ def kill_process(name):
                     print(e)
     else:
         print("No hay procesos activos...")
-        
+
+#Se encarga de monitorear cada segundo si hay una usb conectada
+#En caso de detectarla ejecuta el procedimiento para filtrar el tipo de archivos que contiene y habilita el boton media
+#En caso de desenchufarla deshabilita el boton media
 def monitorUSB():
     global usbActual
     global usbPlugged
